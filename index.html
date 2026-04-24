@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>QuickCart PWA</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">🛒 QuickCart</div>
+      <div class="cart-pill">Cart: <span id="cartCount">0</span></div>
+    </header>
+
+    <section class="hero">
+      <h1>Shop smarter, faster, offline.</h1>
+      <p>A simple e-commerce Progressive Web App built with HTML, CSS, and JavaScript.</p>
+    </section>
+
+    <main>
+      <section class="products" id="products"></section>
+    </main>
+
+    <script>
+      const sampleProducts = [
+        { id: 1, name: "Wireless Headphones", price: 2999, image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80" },
+        { id: 2, name: "Smart Watch", price: 4999, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80" },
+        { id: 3, name: "Running Shoes", price: 2499, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80" },
+        { id: 4, name: "Backpack", price: 1899, image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=600&q=80" },
+        { id: 5, name: "Bluetooth Speaker", price: 1599, image: "https://images.unsplash.com/photo-1589003077984-894e133dabab?auto=format&fit=crop&w=600&q=80" },
+        { id: 6, name: "Sunglasses", price: 999, image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80" }
+      ];
+
+      const productsContainer = document.getElementById("products");
+      const cartCount = document.getElementById("cartCount");
+      let count = 0;
+
+      function formatINR(amount) {
+        return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
+      }
+
+      sampleProducts.forEach((product) => {
+        const card = document.createElement("article");
+        card.className = "product-card";
+
+        card.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" loading="lazy" />
+          <div class="content">
+            <h3>${product.name}</h3>
+            <p class="price">${formatINR(product.price)}</p>
+            <button data-id="${product.id}">Add to Cart</button>
+          </div>
+        `;
+
+        card.querySelector("button").addEventListener("click", () => {
+          count += 1;
+          cartCount.textContent = String(count);
+        });
+
+        productsContainer.appendChild(card);
+      });
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+          try {
+            const registration = await navigator.serviceWorker.register("service-worker.js");
+            console.log("[App] Service Worker registered:", registration.scope);
+
+            if ("sync" in registration) {
+              try {
+                await registration.sync.register("cart-sync");
+                console.log("[App] Background sync registered: cart-sync");
+              } catch (syncError) {
+                console.warn("[App] Background sync registration failed:", syncError);
+              }
+            }
+          } catch (error) {
+            console.error("[App] Service Worker registration failed:", error);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
